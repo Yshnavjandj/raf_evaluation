@@ -3,26 +3,28 @@
  * @NScriptType ClientScript
  * @NModuleScope SameAccount
  */
-define(['N/record'],
+define(['N/record','N/url'],
 /**
  * @param{record} record
  */
-function(record) {
+function(record,url) {
 
     const setFieldValue = (scriptContext) => {
         try {
 
-            let currRecord = scriptContext.currentRecord
+            // url.resolveScript({
+            //     scriptId: 146,
+            //     deploymentId: 55,
+            //     returnExternalUrl: true
+            // });
 
-            if(scriptContext.fieldId === 'item_field') {
+            let currRecord = scriptContext.currentRecord;
 
-                // let sublist = currRecord.getSublist({
-                //     id : 'item'
-                // });
+            if(scriptContext.fieldId === 'custpage_item_field') {
 
                 let item = currRecord.getCurrentSublistValue({
                     sublistId: 'item',
-                    fieldId: 'item_field'
+                    fieldId: 'custpage_item_field'
                 });
 
                 let currentLine = currRecord.getCurrentSublistIndex({
@@ -35,8 +37,7 @@ function(record) {
                     
                     let itemRecord = record.load({
                         type: record.Type.INVENTORY_ITEM,
-                        id: item,
-                        // isDynamic: true,
+                        id: item
                     });
 
                     let quantity =  itemRecord.getValue({
@@ -48,25 +49,35 @@ function(record) {
                         fieldId: 'cost'
                     });
 
+                    let description = itemRecord.getText({
+                        fieldId: 'salesdescription'
+                    });
+
                     console.log('record: ',itemRecord);
 
                     currRecord.setCurrentSublistValue({
                         sublistId: 'item',
-                        fieldId: 'quantity',
+                        fieldId: 'custpage_quantity',
                         value: quantity,
                     });
 
                     currRecord.setCurrentSublistValue({
                         sublistId: 'item',
-                        fieldId: 'price',
+                        fieldId: 'custpage_price',
                         value: price,
                     });
 
                     currRecord.setCurrentSublistValue({
                         sublistId: 'item',
-                        fieldId: 'amount',
+                        fieldId: 'custpage_amount',
                         value: quantity * price,
                     })
+
+                    currRecord.setCurrentSublistValue({
+                        sublistId: 'item',
+                        fieldId: 'custpage_description',
+                        value: description,
+                    });
 
                     console.log('qnty',quantity);
                     console.log('price',price);

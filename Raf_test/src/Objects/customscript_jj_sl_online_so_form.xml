@@ -1,0 +1,31 @@
+<suitelet scriptid="customscript_jj_sl_online_so_form">
+  <description></description>
+  <isinactive>F</isinactive>
+  <name>JJ SL Online Sales Order Form</name>
+  <notifyadmins>F</notifyadmins>
+  <notifyemails></notifyemails>
+  <notifyowner>T</notifyowner>
+  <notifyuser>F</notifyuser>
+  <scriptfile>[/SuiteScripts/jobinAndjismi/online_sales_order_form/jj_sl_online_sales_order_form.js]</scriptfile>
+  <scriptdeployments>
+    <scriptdeployment scriptid="customdeploy_jj_sl_online_so_form">
+      <allemployees>T</allemployees>
+      <allpartners>T</allpartners>
+      <allroles>T</allroles>
+      <audslctrole></audslctrole>
+      <eventtype></eventtype>
+      <isdeployed>T</isdeployed>
+      <isonline>T</isonline>
+      <loglevel>DEBUG</loglevel>
+      <runasrole>ADMINISTRATOR</runasrole>
+      <status>RELEASED</status>
+      <title>JJ SL Online Sales Order Form</title>
+      <links>
+        <link>
+          <linkcategory>BASICSUPPORTCUSTOM</linkcategory>
+          <linklabel>Sales Order Form</linklabel>
+        </link>
+      </links>
+    </scriptdeployment>
+  </scriptdeployments>
+</suitelet>

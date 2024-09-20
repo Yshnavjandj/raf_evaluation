@@ -9,6 +9,7 @@ define(['N/ui/serverWidget','N/search','N/record'],
     (serverWidget,search,record) => {
 
         const salesOrderForm = (scriptContext) => {
+
             try {
 
                 if(scriptContext.request.method === 'GET') {
@@ -44,36 +45,36 @@ define(['N/ui/serverWidget','N/search','N/record'],
                     let sublist = form.addSublist({
                         id : 'item',
                         type : serverWidget.SublistType.INLINEEDITOR,
-                        label : 'Item'
+                        label : 'Items'
                     });
 
                     sublist.addField({
-                        id: 'item_field',
+                        id: 'custpage_item_field',
                         type: serverWidget.FieldType.SELECT,
                         label: 'Item',
                         source: 'item'
                     });
 
                     sublist.addField({
-                        id: 'description',
+                        id: 'custpage_description',
                         type: serverWidget.FieldType.TEXT,
                         label: 'Description'
                     });
 
                     sublist.addField({
-                        id: 'quantity',
+                        id: 'custpage_quantity',
                         type: serverWidget.FieldType.INTEGER,
                         label: 'Quantity'
                     });
 
                     sublist.addField({
-                        id: 'price',
+                        id: 'custpage_price',
                         type: serverWidget.FieldType.FLOAT,
                         label: 'Price'
                     });
 
                     sublist.addField({
-                        id: 'amount',
+                        id: 'custpage_amount',
                         type: serverWidget.FieldType.FLOAT,
                         label: 'Amount'
                     });
@@ -84,9 +85,7 @@ define(['N/ui/serverWidget','N/search','N/record'],
                         label : 'Submit'
                     });
 
-                    scriptContext.response.writePage({
-                        pageObject: form
-                    });
+                    scriptContext.response.writePage(form);
 
                 }else {
 
@@ -95,7 +94,41 @@ define(['N/ui/serverWidget','N/search','N/record'],
                     let lName = scriptContext.request.parameters.custpage_last_name;
                     let phone = scriptContext.request.parameters.custpage_phone;
 
-                    let item = scriptContext.request.parameters.item_field;
+                    let amount = scriptContext.request.getSublistValue({
+                        group: 'item',
+                        name: 'custpage_amount',
+                        line: 0
+                    });
+
+                    let item = scriptContext.request.getSublistValue({
+                        group: 'item',
+                        name: 'custpage_item_field',
+                        line: 0
+                    });
+
+                    let quantity = scriptContext.request.getSublistValue({
+                        group: 'item',
+                        name: 'custpage_quantity',
+                        line: 0
+                    });
+
+                    let description = scriptContext.request.getSublistValue({
+                        group: 'item',
+                        name: 'custpage_description',
+                        line: 0
+                    });
+
+                    let itemRecord = search.lookupFields({
+                        type: search.Type.ITEM,
+                        id: item,
+                        columns: ['itemid','internalid']
+                    });
+
+                    // log.debug("amount: ",amount);
+                    log.debug("item: ",item);
+                    log.debug("item record search: ",itemRecord);
+                    // log.debug("descr: ",description);
+                    // log.debug(": ",amount);
 
                     let customerSearch = search.create({
                         type: search.Type.CUSTOMER,
@@ -104,7 +137,7 @@ define(['N/ui/serverWidget','N/search','N/record'],
                             operator: 'is',
                             values: email
                         }],
-                        columns: ['internalid','entityid','email']
+                        columns: ['internalid','entityid','email','subsidiary']
                     });
 
                     let searchResult = customerSearch.run().getRange({
@@ -112,12 +145,12 @@ define(['N/ui/serverWidget','N/search','N/record'],
                         end: 1
                     });
 
-
                     if(searchResult.length > 0) {
 
                         let customerId = searchResult[0].id;
 
                         log.debug("cus: ",customerId);
+                        log.debug("search: ",searchResult);
 
                         let salesOrder = record.create({
                             type: record.Type.SALES_ORDER,
@@ -125,6 +158,43 @@ define(['N/ui/serverWidget','N/search','N/record'],
                                 entity: customerId
                             }
                         });
+
+                        // salesOrder.insertLine({
+                        //     sublistId: 'item',
+                        //     line: 0
+                        // });
+
+                        salesOrder.setSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'item',
+                            line: 0,
+                            value: item
+                        });
+
+                        salesOrder.setSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'quantity',
+                            line: 0,
+                            value: quantity
+                        });
+
+                        salesOrder.setSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'description',
+                            line: 0,
+                            value: description
+                        });
+
+                        salesOrder.setSublistValue({
+                            sublistId: 'item',
+                            fieldId: 'amount',
+                            line: 0,
+                            value: amount
+                        });
+
+                        let so = salesOrder.save();
+
+                        log.debug("sales order: ",so);
 
 
                         // ##################### Need to get the line count to add exact line items from the suitelet page into new sales order #############################
@@ -181,10 +251,13 @@ define(['N/ui/serverWidget','N/search','N/record'],
                         salesOrder.setSublistValue({
                             sublistId: 'item',
                             fieldId: 'item',
+                            line: 0,
                             value: item
                         });
 
                         //############################ Creating a new customer and after that create a new sales order with that customer ################################
+
+                        //############## after calculating total item amount check whether it exeeds 500 usd inside if condition, if so then, send an email using email module. #################
                     }
                    
                 }
@@ -204,7 +277,13 @@ define(['N/ui/serverWidget','N/search','N/record'],
          * @since 2015.2
          */
         const onRequest = (scriptContext) => {
-            salesOrderForm(scriptContext);
+            try {
+                salesOrderForm(scriptContext);
+            } catch (error) {
+                log.debug("error: ",error);
+                log.debug("error: ",error.message);
+                log.debug("error: ",error.cause);
+            }
         }
 
         return {onRequest}
